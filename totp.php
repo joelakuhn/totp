@@ -25,6 +25,39 @@ function base32_decode($str) {
   return $result;
 }
 
+function base32_encode($str) {
+  $alphabet = [
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
+    'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+    'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+    'Y', 'Z', '2', '3', '4', '5', '6', '7',
+  ];
+  $result = '';
+  $working = 0;
+  $working_n = 0;
+  $count = 0;
+  foreach (str_split($str) as $c) {
+    $working = ($working << 8) + ord($c);
+    $working_n += 8;
+    while ($working_n >= 5) {
+      $result .= $alphabet[$working >> ($working_n - 5)];
+      $working_n -= 5;
+      $working &= 0xFF >> (8 - $working_n);
+      $count += 1;
+    }
+  }
+  if ($working !== 0) {
+    $result .= $alphabet[$working << (5 - $working_n)];
+    $count += 1;
+    if ($count % 8 !== 0) {
+      for ($i=0; $i<(8 - ($count % 8)); $i++) {
+        $result .= '=';
+      }
+    }
+  }
+  return $result;
+}
+
 function otp($secret, $len = 6, $period = 30) {
   $decoded_secret = base32_decode($secret);
   if ($decoded_secret === null) return null;
